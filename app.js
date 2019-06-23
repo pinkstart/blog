@@ -1,7 +1,11 @@
 const express = require('express')
+const fs = require('fs')
+const path = require('path')
 const app = express()
 
-var bodyParser = require('body-parser')
+const bodyParser = require('body-parser')
+
+// 注册解析表单数据的中间件
 app.use(bodyParser.urlencoded({ extended: false }))
 
 // 设置 默认采用的模板引擎名称
@@ -11,28 +15,25 @@ app.set('views', './views')
 
 app.use('/node_modules', express.static('node_modules'))
 
+// // 导入 node_modules文件夹路由模块
+// const router1 = require('./router/index.js')
+// app.use(router1)
 
-app.get('/', (req, res) => {
-    res.render('index', {})
-})
+// // 导入用户相关的路由模块
+// const router2 = require('./router/user.js')
+// app.use(router2)
 
-// 注册
-app.get('/register', (req, res) => {
-    res.render('./user/register.ejs', {})
-})
+// 使用循环的方式，进行路由的循环注册
+fs.readdir(path.join(__dirname, './router'), (err, filenames) => {
+    if (err) return console.log('读取router目录中的路由失败！')
+        // 循环router目录下的每一个文件
+    filenames.forEach(fname => {
+        // 每循环一次，拼接出一个完整的路由模块地址
+        // 然后，使用require导入这个路由模块
+        const router = require(path.join(__dirname, './router', fname))
+        app.use(router)
+    })
 
-//登录
-app.get('/login', (req, res) => {
-    res.render('./user/login.ejs', {})
-})
-
-
-// 注册新用户
-app.post('/register', (req, res) => {
-    // 1.接受前端发送的post请求信息
-    // 2.对前端发送的参数进行解析
-    // 3.对参数进行校验，合法性，是否重复
-    // 4.往数据库添加用户名
 })
 
 app.listen(3000, () => {
